@@ -13,8 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Décompresser le fichier ZIP
+        run: |
+          unzip -o VPN237_app_v5_admin_fichiers.zip -d extracted_app
+          PROJECT_DIR=$(dirname $(find extracted_app -name "pubspec.yaml" -print -quit))
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -26,14 +32,17 @@ jobs:
           channel: 'stable'
 
       - name: Install dependencies
-        run: flutter pub get
+        run: |
+          cd ${{ env.PROJECT_DIR }}
+          flutter pub get
 
       - name: Build APK
         run: |
-          flutter build apk --release --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          cd ${{ env.PROJECT_DIR }}
+          flutter build apk --release --dart-define=SUPABASE_PUBLISHABLE_KEY=${{  }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release.apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
